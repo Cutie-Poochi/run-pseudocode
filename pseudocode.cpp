@@ -8,11 +8,11 @@
 class Token
 {
 public:
-    std::string type;
-    std::string value;
+	std::string type;
+	std::string value;
 
-    Token(const std::string& s)
-    {
+	Token(const std::string& s)
+	{
 		if (keywords.find(s) != keywords.end()) {
 			type = s;
 			return;
@@ -30,53 +30,53 @@ public:
 			return;
 		}
 		type = Keyword::UNKNOWN;
-    }
+	}
 
-    Token(const std::string& type, const std::string& value)
-        : type(type), value(value)
-    {
-    }
+	Token(const std::string& type, const std::string& value)
+		: type(type), value(value)
+	{
+	}
 };
 
 std::ostream &operator<<(std::ostream& os, const Token& token) {
-    if (token.value.empty())
-        return os << '(' << token.type << ')';
-    return os << '(' << token.type << ": " << token.value << ')';
+	if (token.value.empty())
+		return os << '(' << token.type << ')';
+	return os << '(' << token.type << ": " << token.value << ')';
 }
 
 std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 {
 	std::vector<std::vector<Token>> allTokens;
-    std::string line;
-    while (std::getline(sourceFile, line))
+	std::string line;
+	while (std::getline(sourceFile, line))
 	{
-        size_t comment_index = line.find(Keyword::COMMENT);
-        if (comment_index != std::string::npos)
-            line = line.substr(0, comment_index);
+		size_t comment_index = line.find(Keyword::COMMENT);
+		if (comment_index != std::string::npos)
+			line = line.substr(0, comment_index);
 
-        std::vector<Token> lineTokens;
-        std::string currentTokenString;
-        for (char letter : line)
-        {
-            switch(letter) {
-                case ' ':
-                    if (!currentTokenString.empty()) {
-                        lineTokens.push_back(currentTokenString);
-                        currentTokenString.clear();
-                    }
-                    break;
-                default:
-                    currentTokenString.push_back(letter);
-            }
-        }
-        if (!currentTokenString.empty())
-            lineTokens.push_back(currentTokenString);
-		
+		std::vector<Token> lineTokens;
+		std::string currentTokenString;
+		for (char letter : line)
+		{
+			switch(letter) {
+				case ' ':
+					if (!currentTokenString.empty()) {
+						lineTokens.push_back(currentTokenString);
+						currentTokenString.clear();
+					}
+					break;
+				default:
+					currentTokenString.push_back(letter);
+			}
+		}
+		if (!currentTokenString.empty())
+			lineTokens.push_back(currentTokenString);
+
 		if (lineTokens.size() > 0)
 			allTokens.push_back(lineTokens);
-    }
+	}
 
-    return allTokens;
+	return allTokens;
 }
 
 void evaluate(std::vector<std::vector<Token>>& tokens) {
@@ -106,24 +106,24 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc == 1) {
-        std::cout << "Give a file\n";
-        return 0;
-    }
-    std::ifstream sourceFile;
-    sourceFile.open(argv[1]);
-    if (!sourceFile.is_open()) {
-        std::cout << "File doesn't exist\n";
-        return 0;
-    }
+	if (argc == 1) {
+		std::cout << "Give a file\n";
+		return 0;
+	}
+	std::ifstream sourceFile;
+	sourceFile.open(argv[1]);
+	if (!sourceFile.is_open()) {
+		std::cout << "File doesn't exist\n";
+		return 0;
+	}
 
-    auto tokens = parse(sourceFile);
+	auto tokens = parse(sourceFile);
 	// for (auto line : tokens) {
-		// for (auto token : line)
-			// std::cout << token << ' ';
-		// std::cout << '\n';
+	// for (auto token : line)
+	// std::cout << token << ' ';
+	// std::cout << '\n';
 	// }
 	// std::cout << "\n\n";
 	evaluate(tokens);
-    sourceFile.close();
+	sourceFile.close();
 }
