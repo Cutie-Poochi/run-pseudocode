@@ -1,0 +1,5 @@
+brownie <- 5.3
+variable <- -8.6
+
+OUTPUT variable
+OUTPUT brownie
