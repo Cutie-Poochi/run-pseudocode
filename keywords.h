@@ -49,8 +49,7 @@ namespace Keyword {
 	const std::string O_PE = ")";
 	const std::string O_BS = "[";
 	const std::string O_BE = "]";
-	const std::string SINGQUOTES = "'";
-	const std::string DOUBQUOTES = "\"";
+	const std::string O_DQ = "\"";
 	const std::string LENGTH = "LENGTH";
 	const std::string UCASE = "UCASE";
 	const std::string LCASE = "LCASE";
