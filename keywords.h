@@ -70,7 +70,7 @@ namespace Keyword {
 	const std::string COMMENT = "//";
 	const std::string UNKNOWN = "?";
 	const std::string NEWLINE = "\n";
-	const std::string VARIABLE = "var";
+	const std::string INVALID = "ERROR";
 }
 std::unordered_set<std::string> keywords = {
 	Keyword::IF,

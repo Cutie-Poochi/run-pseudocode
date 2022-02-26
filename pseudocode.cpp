@@ -78,12 +78,12 @@ std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 				continue;
 			}
 			switch(letter) {
-				case ',':
+				case ',': case '(': case ')': case '+': case '-': case '*': case '/': case '^':
 					if (!currentTokenString.empty()) {
 						lineTokens.push_back(currentTokenString);
 						currentTokenString.clear();
 					}
-					lineTokens.push_back(Keyword::COMMA);
+					lineTokens.push_back(std::string(1, letter));
 					break;
 				case ' ':
 					if (!currentTokenString.empty()) {
@@ -115,19 +115,22 @@ std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 	return allTokens;
 }
 
-std::string evaluate_printable(std::vector<Token> tokens, std::map<std::string, Token> variables) {
+Token evaluate_printable(std::vector<Token> tokens, std::map<std::string, Token> variables) {
 	std::string printable = "";
+	std::cout << tokens[0];
 	if (tokens.size() == 1) {
 		Token token = tokens[0];
 		if (token.type == Keyword::UNKNOWN) {
 			std::map<std::string, Token>::const_iterator pos = variables.find(token.value);
 			if (pos != variables.end())
-				return pos->second.value;
+				return pos->second;
+			else
+				return Token(Keyword::INVALID);
 		}
 		if (token.type == Keyword::STRING || token.type == Keyword::INTEGRE || token.type == Keyword::BOOLEAN)
-			return token.value;
+			return token;
 	}
-	return "";
+	return Token(Keyword::INVALID);
 }
 
 void evaluate(std::vector<std::vector<Token>>& tokens) {
@@ -141,9 +144,13 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 				std::cout << "Can't use keyword as a variable name\n";
 				return;
 			}
-			if (lineTokens[2].type != Keyword::STRING && lineTokens[2].type != Keyword::INTEGRE && lineTokens[2].type != Keyword::BOOLEAN) {
+			for (auto token : std::vector<Token>(lineTokens.begin()+2, lineTokens.end()))
+			{
+				std::cout << token << ' ';
 			}
-			variables[lineTokens[0].value] = lineTokens[2];
+			Token printable = evaluate_printable(std::vector<Token>(lineTokens.begin()+2, lineTokens.end()), variables);
+			variables[lineTokens[0].value] = printable;
+			continue;
 		}
 
 		if (lineTokens[0].type == Keyword::OUTPUT)
@@ -159,7 +166,7 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 			{
 				printableEnd++;
 				if (printableEnd->type == Keyword::COMMA) {
-					std::cout << evaluate_printable(std::vector<Token>(printableStart, printableEnd), variables) << ' ';
+					std::cout << evaluate_printable(std::vector<Token>(printableStart, printableEnd), variables).value << ' ';
 					printableStart = printableEnd+1;
 				}
 			}
@@ -167,7 +174,7 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 				std::cout << "No argument given after comma\n";
 				return;
 			}
-			std::cout << evaluate_printable(std::vector<Token>(printableStart, printableEnd), variables) << '\n';
+			std::cout << evaluate_printable(std::vector<Token>(printableStart, printableEnd), variables).value << '\n';
 		}
 
 		if (lineTokens[0].type == Keyword::INPUT)
@@ -183,7 +190,7 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 				return;
 			}
 			Token input(Keyword::STRING);
-			std::cin >> input.value;
+			std::getline(std::cin, input.value);
 			char* fail;
 			strtol(input.value.c_str(), &fail, 10);
 			if (*fail) {
@@ -209,7 +216,7 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 					return;
 				}
 				input.type = Keyword::STRING;
-				std::cin >> input.value;
+				std::getline(std::cin, input.value);
 				char* fail;
 				strtol(input.value.c_str(), &fail, 10);
 				if (*fail) {
