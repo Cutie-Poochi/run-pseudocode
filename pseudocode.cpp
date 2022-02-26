@@ -135,8 +135,11 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 		if (lineTokens[1].type == Keyword::ASSIGN)
 		{
 			// variable <- value
-			if (lineTokens[0].type != Keyword::UNKNOWN || (lineTokens[2].type != Keyword::STRING && lineTokens[2].type != Keyword::INTEGRE &&lineTokens[2].type != Keyword::BOOLEAN))
-			{
+			if (lineTokens[0].type != Keyword::UNKNOWN) {
+				std::cout << "Can't use keyword as a variable name\n";
+				return;
+			}
+			if (lineTokens[2].type != Keyword::STRING && lineTokens[2].type != Keyword::INTEGRE && lineTokens[2].type != Keyword::BOOLEAN) {
 			}
 			variables.insert(std::pair<std::string, Token>(lineTokens[0].value, lineTokens[2]));
 		}
@@ -159,10 +162,40 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 				}
 			}
 			if (printableStart == printableEnd) {
-				std::cout << "\nNo argument given after comma\n";
+				std::cout << "No argument given after comma\n";
 				return;
 			}
 			std::cout << evaluate_printable(std::vector<Token>(printableStart, printableEnd), variables) << '\n';
+		}
+
+		if (lineTokens[0].type == Keyword::INPUT)
+		{
+			if (lineTokens.size() == 1) {
+				std::cout << "\nINPUT must take at least 1 argument\n";
+				return;
+			}
+			// INPUT printable1, printable2, ...
+			std::vector<Token>::iterator variablePos = lineTokens.begin()+1;
+			while (variableEnd != lineTokens.end())
+			{
+				if (variablePos->type != Keyword::UNKNOWN) {
+					std::cout << "Can't use keyword as a variable name\n";
+					return;
+				}
+				variableEnd++;
+				if (variableEnd->type == Keyword::COMMA) {
+					std::cout << evaluate_printable(std::vector<Token>(printableStart, printableEnd), variables) << ' ';
+					variableStart = variableEnd+1;
+				}
+			}
+			if (variableStart == variableEnd) {
+				std::cout << "\nNo argument given after comma\n";
+				return;
+			}
+			if (lineTokens[1].type != Keyword::UNKNOWN || (lineTokens[2].type != Keyword::STRING && lineTokens[2].type != Keyword::INTEGRE &&lineTokens[2].type != Keyword::BOOLEAN))
+			{
+			}
+			variables.insert(std::pair<std::string, Token>(lineTokens[0].value, lineTokens[2]));
 		}
 	}
 	return;
@@ -181,7 +214,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	auto tokens = parse(sourceFile);
-#define printTokens 1
+#define printTokens 0
 #if printTokens == 1
 	for (auto line : tokens) {
 		for (auto token : line)
