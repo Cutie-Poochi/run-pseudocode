@@ -11,6 +11,8 @@ public:
 	std::string type;
 	std::string value;
 
+	Token() {}
+
 	Token(const std::string& s)
 	{
 		if (keywords.find(s) != keywords.end()) {
@@ -141,7 +143,7 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 			}
 			if (lineTokens[2].type != Keyword::STRING && lineTokens[2].type != Keyword::INTEGRE && lineTokens[2].type != Keyword::BOOLEAN) {
 			}
-			variables.insert(std::pair<std::string, Token>(lineTokens[0].value, lineTokens[2]));
+			variables[lineTokens[0].value] = lineTokens[2];
 		}
 
 		if (lineTokens[0].type == Keyword::OUTPUT)
@@ -176,26 +178,48 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 			}
 			// INPUT printable1, printable2, ...
 			std::vector<Token>::iterator variablePos = lineTokens.begin()+1;
-			while (variableEnd != lineTokens.end())
+			if (variablePos->type != Keyword::UNKNOWN) {
+				std::cout << "Can't use keyword as a variable name\n";
+				return;
+			}
+			Token input(Keyword::STRING);
+			std::cin >> input.value;
+			char* fail;
+			strtol(input.value.c_str(), &fail, 10);
+			if (*fail) {
+				strtod(input.value.c_str(), &fail);
+				if (!*fail)
+					input.type = Keyword::REAL;
+			} else
+				input.type = Keyword::INTEGRE;
+			variables[variablePos->value] = input;
+			
+			while (++variablePos != lineTokens.end())
 			{
+				if (variablePos->type != Keyword::COMMA) {
+					std::cout << ", expected\n";
+					return;
+				}
+				if (++variablePos == lineTokens.end()) {
+					std::cout << "Argument expected\n";
+					return;
+				}
 				if (variablePos->type != Keyword::UNKNOWN) {
 					std::cout << "Can't use keyword as a variable name\n";
 					return;
 				}
-				variableEnd++;
-				if (variableEnd->type == Keyword::COMMA) {
-					std::cout << evaluate_printable(std::vector<Token>(printableStart, printableEnd), variables) << ' ';
-					variableStart = variableEnd+1;
-				}
+				input.type = Keyword::STRING;
+				std::cin >> input.value;
+				char* fail;
+				strtol(input.value.c_str(), &fail, 10);
+				if (*fail) {
+					strtod(input.value.c_str(), &fail);
+					if (!*fail)
+						input.type = Keyword::REAL;
+				} else
+					input.type = Keyword::INTEGRE;
+				variables[variablePos->value] = input;
 			}
-			if (variableStart == variableEnd) {
-				std::cout << "\nNo argument given after comma\n";
-				return;
-			}
-			if (lineTokens[1].type != Keyword::UNKNOWN || (lineTokens[2].type != Keyword::STRING && lineTokens[2].type != Keyword::INTEGRE &&lineTokens[2].type != Keyword::BOOLEAN))
-			{
-			}
-			variables.insert(std::pair<std::string, Token>(lineTokens[0].value, lineTokens[2]));
 		}
 	}
 	return;
