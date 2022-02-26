@@ -76,6 +76,13 @@ std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 				continue;
 			}
 			switch(letter) {
+				case ',':
+					if (!currentTokenString.empty()) {
+						lineTokens.push_back(currentTokenString);
+						currentTokenString.clear();
+					}
+					lineTokens.push_back(Keyword::COMMA);
+					break;
 				case ' ':
 					if (!currentTokenString.empty()) {
 						lineTokens.push_back(currentTokenString);
@@ -106,6 +113,21 @@ std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 	return allTokens;
 }
 
+std::string evaluate_printable(std::vector<Token> tokens, std::map<std::string, Token> variables) {
+	std::string printable = "";
+	if (tokens.size() == 1) {
+		Token token = tokens[0];
+		if (token.type == Keyword::UNKNOWN) {
+			std::map<std::string, Token>::const_iterator pos = variables.find(token.value);
+			if (pos != variables.end())
+				return pos->second.value;
+		}
+		if (token.type == Keyword::STRING || token.type == Keyword::INTEGRE || token.type == Keyword::BOOLEAN)
+			return token.value;
+	}
+	return "";
+}
+
 void evaluate(std::vector<std::vector<Token>>& tokens) {
 	std::map<std::string, Token> variables;
 	for (auto lineTokens : tokens)
@@ -121,12 +143,26 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 
 		if (lineTokens[0].type == Keyword::OUTPUT)
 		{
-			// OUTPUT variable
-			if (lineTokens[1].type == Keyword::UNKNOWN) {
-				std::map<std::string, Token>::const_iterator pos = variables.find(lineTokens[1].value);
-				if (pos != variables.end())
-					std::cout << pos->second.value << '\n';
+			if (lineTokens.size() == 1) {
+				std::cout << "OUTPUT must take at least 1 argument\n";
+				return;
 			}
+			// OUTPUT printable1, printable2, ...
+			std::vector<Token>::iterator printableStart = lineTokens.begin()+1;
+			std::vector<Token>::iterator printableEnd = lineTokens.begin()+1;
+			while (printableEnd != lineTokens.end())
+			{
+				printableEnd++;
+				if (printableEnd->type == Keyword::COMMA) {
+					std::cout << evaluate_printable(std::vector<Token>(printableStart, printableEnd), variables) << ' ';
+					printableStart = printableEnd+1;
+				}
+			}
+			if (printableStart == printableEnd) {
+				std::cout << "\nNo argument given after comma\n";
+				return;
+			}
+			std::cout << evaluate_printable(std::vector<Token>(printableStart, printableEnd), variables) << '\n';
 		}
 	}
 	return;
@@ -145,7 +181,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	auto tokens = parse(sourceFile);
-#define printTokens 0
+#define printTokens 1
 #if printTokens == 1
 	for (auto line : tokens) {
 		for (auto token : line)

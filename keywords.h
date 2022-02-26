@@ -24,6 +24,7 @@ namespace Keyword {
 	const std::string S_POW = "^";
 	const std::string PROCEDURE = "PROCEDURE";
 	const std::string CALL = "CALL";
+	const std::string COMMA = ",";
 	const std::string COLON = ":";
 	const std::string FUNCTION = "FUNCTION";
 	const std::string RETURN = "RETURN";
@@ -94,6 +95,7 @@ std::unordered_set<std::string> keywords = {
 	Keyword::S_POW,
 	Keyword::PROCEDURE,
 	Keyword::CALL,
+	Keyword::COMMA,
 	Keyword::COLON,
 	Keyword::FUNCTION,
 	Keyword::RETURN,
