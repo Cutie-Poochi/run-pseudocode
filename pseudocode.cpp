@@ -4,41 +4,7 @@
 #include <vector>
 #include <map>
 #include "keywords.h"
-
-class Token
-{
-public:
-	std::string type;
-	std::string value;
-
-	Token() {}
-
-	Token(const std::string& s)
-	{
-		if (keywords.find(s) != keywords.end()) {
-			type = s;
-			return;
-		}
-		value = s;
-		char* fail;
-		strtol(s.c_str(), &fail, 10);
-		if (!*fail) {
-			type = Keyword::INTEGRE;
-			return;
-		}
-		strtod(s.c_str(), &fail);
-		if (!*fail) {
-			type = Keyword::REAL;
-			return;
-		}
-		type = Keyword::UNKNOWN;
-	}
-
-	Token(const std::string& type, const std::string& value)
-		: type(type), value(value)
-	{
-	}
-};
+#include "token.h"
 
 std::ostream &operator<<(std::ostream& os, const Token& token) {
 	if (token.value.empty())
@@ -78,7 +44,12 @@ std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 				continue;
 			}
 			switch(letter) {
-				case ',': case '(': case ')': case '+': case '-': case '*': case '/': case '^':
+				case '-':
+					if (currentTokenString == "<") {
+						currentTokenString.push_back(letter);
+						break;
+					}
+				case ',': case '(': case ')': case '+': case '*': case '/': case '^':
 					if (!currentTokenString.empty()) {
 						lineTokens.push_back(currentTokenString);
 						currentTokenString.clear();
@@ -115,22 +86,78 @@ std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 	return allTokens;
 }
 
+void evaluate_number(std::vector<Token>& tokens, size_t irrelevance) {
+	// -a^b should be treated as -(a^b) so insert 0 at the beginning
+	if (tokens[0].type == Keyword::S_SUB || tokens[0].type == Keyword::S_ADD)
+		tokens.insert(tokens.begin(), Token(Keyword::INTEGRE, "0"));
+	if (tokens.size() == 3) {
+		if (tokens[2].type == Keyword::REAL)
+			tokens[0].type == Keyword::REAL;
+		if (tokens[1].type == Keyword::S_ADD)
+			tokens[0] += tokens[2];
+		else if (tokens[1].type == Keyword::S_SUB)
+			tokens[0] -= tokens[2];
+		else if (tokens[1].type == Keyword::S_MULT)
+			tokens[0] *= tokens[2];
+		else if (tokens[1].type == Keyword::S_DIV)
+			tokens[0] /= tokens[2];
+		else if (tokens[1].type == Keyword::S_POW)
+			tokens[0].pow(tokens[2]);
+		tokens.erase(tokens.begin()+1, tokens.end());
+		return;
+	}
+	if (tokens[3].type == Keyword::S_ADD || tokens[3].type == Keyword::S_SUB) {
+		std::vector<Token> temp(tokens.begin(), tokens.begin()+3);
+		evaluate_number(temp, 1);
+		tokens[0] = temp[0];
+		tokens.erase(tokens.begin()+1, tokens.begin()+3);
+		return;
+	}
+	if ((tokens[3].type == Keyword::S_MULT || tokens[3].type == Keyword::S_DIV) && irrelevance > 1) {
+		std::vector<Token> temp(tokens.begin(), tokens.begin()+3);
+		evaluate_number(temp, 2);
+		tokens[0] = temp[0];
+		tokens.erase(tokens.begin()+1, tokens.begin()+3);
+		return;
+	}
+	if (tokens[3].type == Keyword::S_POW && irrelevance > 2) {
+		std::vector<Token> temp(tokens.begin(), tokens.begin()+3);
+		evaluate_number(temp, 3);
+		tokens[0] = temp[0];
+		tokens.erase(tokens.begin()+1, tokens.begin()+3);
+		return;
+	}
+	Token temp1 = tokens[0];
+	Token temp2 = tokens[1];
+	tokens.erase(tokens.begin(), tokens.begin()+2);
+	evaluate_number(tokens, irrelevance+1);
+	tokens.insert(tokens.begin(), temp2);
+	tokens.insert(tokens.begin(), temp1);
+	return;
+}
+
 Token evaluate_printable(std::vector<Token> tokens, std::map<std::string, Token> variables) {
-	std::string printable = "";
-	std::cout << tokens[0];
+	if (tokens.size() == 0)
+		return Token(Keyword::INVALID);
 	if (tokens.size() == 1) {
 		Token token = tokens[0];
+		if (token.type == Keyword::STRING || token.type == Keyword::INTEGRE || token.type == Keyword::REAL || token.type == Keyword::BOOLEAN)
+			return token;
 		if (token.type == Keyword::UNKNOWN) {
 			std::map<std::string, Token>::const_iterator pos = variables.find(token.value);
 			if (pos != variables.end())
 				return pos->second;
-			else
-				return Token(Keyword::INVALID);
 		}
-		if (token.type == Keyword::STRING || token.type == Keyword::INTEGRE || token.type == Keyword::BOOLEAN)
-			return token;
+		return Token(Keyword::INVALID);
 	}
-	return Token(Keyword::INVALID);
+	while (tokens.size() > 1) {
+		// for (auto token : tokens)
+			// std::cout << token << '\n';
+		// std::cout << "\nSize:" << tokens.size() << "\n";
+		evaluate_number(tokens, 1);
+	}
+	
+	return tokens[0];
 }
 
 void evaluate(std::vector<std::vector<Token>>& tokens) {
@@ -143,10 +170,6 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 			if (lineTokens[0].type != Keyword::UNKNOWN) {
 				std::cout << "Can't use keyword as a variable name\n";
 				return;
-			}
-			for (auto token : std::vector<Token>(lineTokens.begin()+2, lineTokens.end()))
-			{
-				std::cout << token << ' ';
 			}
 			Token printable = evaluate_printable(std::vector<Token>(lineTokens.begin()+2, lineTokens.end()), variables);
 			variables[lineTokens[0].value] = printable;
@@ -195,7 +218,10 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 			strtol(input.value.c_str(), &fail, 10);
 			if (*fail) {
 				strtod(input.value.c_str(), &fail);
-				if (!*fail)
+				if (*fail)
+					if (input.value == Keyword::TRUE || input.value == Keyword::FALSE)
+						input.type = Keyword::BOOLEAN;
+				else
 					input.type = Keyword::REAL;
 			} else
 				input.type = Keyword::INTEGRE;
@@ -221,7 +247,10 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 				strtol(input.value.c_str(), &fail, 10);
 				if (*fail) {
 					strtod(input.value.c_str(), &fail);
-					if (!*fail)
+					if (*fail)
+						if (input.value == Keyword::TRUE || input.value == Keyword::FALSE)
+							input.type = Keyword::BOOLEAN;
+					else
 						input.type = Keyword::REAL;
 				} else
 					input.type = Keyword::INTEGRE;
@@ -252,7 +281,7 @@ int main(int argc, char* argv[]) {
 		std::cout << token << ' ';
 		std::cout << '\n';
 	}
-	std::cout << "\n\n";
+	std::cout << '\n';
 #endif
 	evaluate(tokens);
 	sourceFile.close();

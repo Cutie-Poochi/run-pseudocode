@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include <unordered_set>
 
@@ -71,68 +72,6 @@ namespace Keyword {
 	const std::string UNKNOWN = "?";
 	const std::string NEWLINE = "\n";
 	const std::string INVALID = "ERROR";
+	const std::string TRUE = "TRUE";
+	const std::string FALSE = "FALSE";
 }
-std::unordered_set<std::string> keywords = {
-	Keyword::IF,
-	Keyword::REPEAT,
-	Keyword::WHILE,
-	Keyword::FOR,
-	Keyword::DO,
-	Keyword::THEN,
-	Keyword::ELSE,
-	Keyword::UNTIL,
-	Keyword::TO,
-	Keyword::STEP,
-	Keyword::NEXT,
-	Keyword::INPUT,
-	Keyword::OUTPUT,
-	Keyword::END,
-	Keyword::ASSIGN,
-	Keyword::S_ADD,
-	Keyword::S_SUB,
-	Keyword::S_MULT,
-	Keyword::S_DIV,
-	Keyword::S_POW,
-	Keyword::PROCEDURE,
-	Keyword::CALL,
-	Keyword::COMMA,
-	Keyword::COLON,
-	Keyword::FUNCTION,
-	Keyword::RETURN,
-	Keyword::RETURNS,
-	Keyword::INTEGRE,
-	Keyword::REAL,
-	Keyword::CHAR,
-	Keyword::STRING,
-	Keyword::BOOLEAN,
-	Keyword::ARRAY,
-	Keyword::OF,
-	Keyword::DECLARE,
-	Keyword::CONSTANT,
-	Keyword::DIV,
-	Keyword::MOD,
-	Keyword::C_EQ,
-	Keyword::C_LT,
-	Keyword::C_LE,
-	Keyword::C_GT,
-	Keyword::C_GE,
-	Keyword::C_NE,
-	Keyword::O_PS,
-	Keyword::O_PE,
-	Keyword::O_BS,
-	Keyword::O_BE,
-	Keyword::LENGTH,
-	Keyword::UCASE,
-	Keyword::LCASE,
-	Keyword::SUBSTRING,
-	Keyword::ROUND,
-	Keyword::RANDOM,
-	Keyword::CASE,
-	Keyword::OTHERWISE,
-	Keyword::OPENFILE,
-	Keyword::READ,
-	Keyword::WRITE,
-	Keyword::READFILE,
-	Keyword::WRITEFILE,
-	Keyword::CLOSEFILE
-};
