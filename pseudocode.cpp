@@ -87,12 +87,13 @@ std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 }
 
 void evaluate_number(std::vector<Token>& tokens, size_t irrelevance) {
+	std::cout << 'a';
 	// -a^b should be treated as -(a^b) so insert 0 at the beginning
 	if (tokens[0].type == Keyword::S_SUB || tokens[0].type == Keyword::S_ADD)
 		tokens.insert(tokens.begin(), Token(Keyword::INTEGRE, "0"));
 	if (tokens.size() == 3) {
 		if (tokens[2].type == Keyword::REAL)
-			tokens[0].type == Keyword::REAL;
+			tokens[0].type = Keyword::REAL;
 		if (tokens[1].type == Keyword::S_ADD)
 			tokens[0] += tokens[2];
 		else if (tokens[1].type == Keyword::S_SUB)
@@ -112,6 +113,10 @@ void evaluate_number(std::vector<Token>& tokens, size_t irrelevance) {
 		tokens[0] = temp[0];
 		tokens.erase(tokens.begin()+1, tokens.begin()+3);
 		return;
+	}
+	if (tokens[2].type == Keyword::S_SUB) {
+		tokens.erase(tokens.begin()+2);
+		tokens[2].value.insert(0, 1, *(Keyword::S_SUB.c_str()));
 	}
 	if ((tokens[3].type == Keyword::S_MULT || tokens[3].type == Keyword::S_DIV) && irrelevance > 1) {
 		std::vector<Token> temp(tokens.begin(), tokens.begin()+3);
@@ -218,10 +223,10 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 			strtol(input.value.c_str(), &fail, 10);
 			if (*fail) {
 				strtod(input.value.c_str(), &fail);
-				if (*fail)
+				if (*fail) {
 					if (input.value == Keyword::TRUE || input.value == Keyword::FALSE)
 						input.type = Keyword::BOOLEAN;
-				else
+				} else
 					input.type = Keyword::REAL;
 			} else
 				input.type = Keyword::INTEGRE;
@@ -247,10 +252,10 @@ void evaluate(std::vector<std::vector<Token>>& tokens) {
 				strtol(input.value.c_str(), &fail, 10);
 				if (*fail) {
 					strtod(input.value.c_str(), &fail);
-					if (*fail)
+					if (*fail) {
 						if (input.value == Keyword::TRUE || input.value == Keyword::FALSE)
 							input.type = Keyword::BOOLEAN;
-					else
+					} else
 						input.type = Keyword::REAL;
 				} else
 					input.type = Keyword::INTEGRE;
