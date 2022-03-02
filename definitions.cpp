@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cmath>
 
-std::unordered_set<std::string> keywords = {
+const std::unordered_set<const char*> keywords = {
 	Keyword::IF,
 	Keyword::REPEAT,
 	Keyword::WHILE,
@@ -77,9 +77,14 @@ Token::Token(const Token& t)
 
 Token::Token(const std::string& s)
 {
-	if (keywords.find(s) != keywords.end()) {
-		type = s;
-		return;
+	std::cout << s << '\n';
+	auto keywordsIterator = keywords.begin();
+	while (keywordsIterator != keywords.end()) {
+		++keywordsIterator;
+		if (strcmp(*keywordsIterator, s.c_str()) != 0) {
+			type = *keywordsIterator;
+			return;
+		}
 	}
 	value = s;
 	char* fail;

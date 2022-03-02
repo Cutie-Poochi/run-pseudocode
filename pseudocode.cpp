@@ -27,7 +27,7 @@ std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 
 		for (char letter : line)
 		{
-			if (letter == *Keyword::O_DQ.c_str())
+			if (letter == *Keyword::O_DQ)
 			{
 				if (isString) {
 					lineTokens.emplace_back(Keyword::STRING, currentTokenString);
@@ -87,7 +87,6 @@ std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 }
 
 void evaluate_number(std::vector<Token>& tokens, size_t irrelevance) {
-	std::cout << 'a';
 	// -a^b should be treated as -(a^b) so insert 0 at the beginning
 	if (tokens[0].type == Keyword::S_SUB || tokens[0].type == Keyword::S_ADD)
 		tokens.insert(tokens.begin(), Token(Keyword::INTEGRE, "0"));
@@ -116,7 +115,7 @@ void evaluate_number(std::vector<Token>& tokens, size_t irrelevance) {
 	}
 	if (tokens[2].type == Keyword::S_SUB) {
 		tokens.erase(tokens.begin()+2);
-		tokens[2].value.insert(0, 1, *(Keyword::S_SUB.c_str()));
+		tokens[2].value = std::string(Keyword::S_SUB) + tokens[2].value;
 	}
 	if ((tokens[3].type == Keyword::S_MULT || tokens[3].type == Keyword::S_DIV) && irrelevance > 1) {
 		std::vector<Token> temp(tokens.begin(), tokens.begin()+3);
@@ -279,7 +278,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	auto tokens = parse(sourceFile);
-#define printTokens 0
+	sourceFile.close();
+#define printTokens 1
 #if printTokens == 1
 	for (auto line : tokens) {
 		for (auto token : line)
@@ -289,5 +289,4 @@ int main(int argc, char* argv[]) {
 	std::cout << '\n';
 #endif
 	evaluate(tokens);
-	sourceFile.close();
 }
