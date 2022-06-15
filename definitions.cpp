@@ -77,12 +77,9 @@ Token::Token(const Token& t)
 
 Token::Token(const std::string& s)
 {
-	std::cout << s << '\n';
-	auto keywordsIterator = keywords.begin();
-	while (keywordsIterator != keywords.end()) {
-		++keywordsIterator;
-		if (strcmp(*keywordsIterator, s.c_str()) != 0) {
-			type = *keywordsIterator;
+	for (const char* keyword : keywords) {
+		if (std::string(keyword) == s) {
+			type = keyword;
 			return;
 		}
 	}
@@ -144,4 +141,12 @@ void Token::pow(const Token& t) {
 	ss << std::pow(strtod(value.c_str(), nullptr), strtod(t.value.c_str(), nullptr));
 	value = ss.str();
 }
+
+std::ostream& operator<<(std::ostream& os, const Token& token) {
+	if (token.value.empty())
+		return os << '(' << token.type << ')';
+	return os << '(' << token.type << ": " << token.value << ')';
+}
+
+std::ostream& operator<<(std::ostream& os, const std::Token& token) {
 

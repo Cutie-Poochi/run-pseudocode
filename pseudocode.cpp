@@ -6,12 +6,6 @@
 #include "keywords.h"
 #include "token.h"
 
-std::ostream &operator<<(std::ostream& os, const Token& token) {
-	if (token.value.empty())
-		return os << '(' << token.type << ')';
-	return os << '(' << token.type << ": " << token.value << ')';
-}
-
 std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 {
 	std::vector<std::vector<Token>> allTokens;
@@ -87,6 +81,7 @@ std::vector<std::vector<Token>> parse(std::ifstream& sourceFile)
 }
 
 void evaluate_number(std::vector<Token>& tokens, size_t irrelevance) {
+	std::cout << 
 	// -a^b should be treated as -(a^b) so insert 0 at the beginning
 	if (tokens[0].type == Keyword::S_SUB || tokens[0].type == Keyword::S_ADD)
 		tokens.insert(tokens.begin(), Token(Keyword::INTEGRE, "0"));
@@ -279,7 +274,7 @@ int main(int argc, char* argv[]) {
 
 	auto tokens = parse(sourceFile);
 	sourceFile.close();
-#define printTokens 1
+#define printTokens 0
 #if printTokens == 1
 	for (auto line : tokens) {
 		for (auto token : line)

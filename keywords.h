@@ -65,7 +65,7 @@ namespace Keyword {
 	const char* const WRITE = "WRITE";
 	const char* const READFILE = "READFILE";
 	const char* const WRITEFILE = "WRITEFILE";
-	const char* const CLOSEFILE  = "CLOSEFILE ";
+	const char* const CLOSEFILE  = "CLOSEFILE";
 
 	// not to be parsed, just identifiers ig
 	const char* const COMMENT = "//";

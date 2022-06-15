@@ -17,5 +17,5 @@ pog
 
 Output:
 ```
-pog 128
+pog 22
 ```
